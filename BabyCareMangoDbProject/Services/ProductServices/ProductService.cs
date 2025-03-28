@@ -3,6 +3,7 @@ using BabyCareMangoDbProject.DataAccess.Entities;
 using BabyCareMangoDbProject.DataAccess.Settings;
 using BabyCareMangoDbProject.Dtos.ProductDtos;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 
 namespace BabyCareMangoDbProject.Services.ProductServices
 {
@@ -18,29 +19,33 @@ namespace BabyCareMangoDbProject.Services.ProductServices
             _productCollection = database.GetCollection<Product>(databaseSettings.ProductCollectionName);
         }
 
-        public Task CreateAsync(CreateProductDto createProductDto)
+        public async Task CreateAsync(CreateProductDto createProductDto)
         {
-            throw new NotImplementedException();
+            var product= _mapper.Map<Product>(createProductDto);
+            await _productCollection.InsertOneAsync(product);
         }
 
-        public Task DeleteAsync(string id)
+        public async Task DeleteAsync(string id)
         {
-            throw new NotImplementedException();
+            await _productCollection.DeleteOneAsync(x=> x.ProductId==id);
         }
 
-        public Task<List<ResultProductDto>> GetAllAsync()
+        public async Task<List<ResultProductDto>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            var values= await _productCollection.AsQueryable().ToListAsync();
+            return _mapper.Map<List<ResultProductDto>>(values);
         }
 
-        public Task<UpdateProductDto> GetById(string id)
+        public async Task<UpdateProductDto> GetById(string id)
         {
-            throw new NotImplementedException();
+            var value= await _productCollection.Find(x=>x.ProductId==id).FirstOrDefaultAsync();
+            return _mapper.Map<UpdateProductDto>(value);
         }
 
-        public Task UpdateAsync(UpdateProductDto updateProductDto)
+        public async Task UpdateAsync(UpdateProductDto updateProductDto)
         {
-            throw new NotImplementedException();
+            var product=_mapper.Map<Product>(updateProductDto);
+            await _productCollection.FindOneAndReplaceAsync(x => x.ProductId == product.ProductId, product);
         }
     }
 }
